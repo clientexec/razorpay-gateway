@@ -1,0 +1,180 @@
+<input type="hidden" id="razorpay_payment_id" name="razorpay_plugincustomfields[razorpay_payment_id]" value="">
+<input type="hidden" id="razorpay_signature" name="razorpay_plugincustomfields[razorpay_signature]" value="">
+
+<script data-cfasync="false" src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<?php if ($this->from == 'signup') { ?>
+    <a style="margin-left:0px;cursor:pointer;" class="btn-success btn btn-lg customButton razorpayButton <?php if(@$this->termsConditions) { ?>disabled<?php } ?> center-on-mobile" id="customButton"></a>
+<?php } elseif ($this->from == 'invoice') { ?>
+    <button style="margin-left:0px;cursor:pointer;" class="pull-right btn btn-lg btn-default customButton razorpayButton"><?php echo $this->user->lang('Pay Invoice'); ?></button>
+<?php } ?>
+
+<script data-cfasync="false" type="text/javascript">
+    var razorpay_rzp;
+
+    $('.razorpayButton').on('click', function(e) {
+        <?php if ($this->from == 'signup') { ?>
+            if ($('.razorpayButton').hasClass('disabled')) {
+                return;
+            }
+
+            var password_validated = true;
+
+            <?php if (!$this->loggedIn) { ?>
+                $('.parsley-error-list.help-block').parent().removeClass('has-error');
+                $('.parsley-error-list.help-block').remove();
+                e.preventDefault();
+
+                //let's validate remote data
+                if ($('#password').length > 0) {
+                    if ($.trim($('#password').val()) == "") return;
+                    $.ajax({
+                        type: "POST",
+                        data: {"password": $('#password').val()},
+                        url: 'index.php?controller=signup&fuse=admin&action=testpasswordstrength',
+                        async: false,
+                        success : function(response) {
+                            json = ce.parseResponse(response);
+                            if (!json.valid) {
+                                password_validated = false;
+                                $('#password').parent().addClass('has-error');
+                                $('#password').after('<span class="help-block parsley-error-list">'+json.errorMessage+'</span>');
+                                $('#password').get(0).scrollIntoView();
+                            }
+                        }
+                    });
+                }
+            <?php } ?>
+
+            if (password_validated && $('#submitForm').parsley('validate')) {
+        <?php } ?>
+
+        <?php
+            $logoImage = '';
+            if (isset($this->logoImage) && $this->logoImage != '') {
+                $logoImage = str_replace("'", "\\'", $this->logoImage);
+            }
+
+            $companyName = '';
+            if (isset($this->companyName) && $this->companyName != '') {
+                $companyName = str_replace("'", "\\'", $this->companyName);
+            }
+
+            $firstName = '';
+            $lastName = '';
+            $email = '';
+            $phone = '';
+            $address = '';
+            $city = '';
+            $state = '';
+            $zipCode = '';
+            $country = '';
+            if (isset($this->user)) {
+                $firstName = str_replace("'", "\\'", $this->user->getFirstName());
+                $lastName = str_replace("'", "\\'", $this->user->getLastName());
+                $email = str_replace("'", "\\'", $this->user->getEmail());
+                $phone = str_replace("'", "\\'", $this->user->getPhone());
+                $address = str_replace("'", "\\'", $this->user->getAddress());
+                $city = str_replace("'", "\\'", $this->user->getCity());
+                $state = str_replace("'", "\\'", $this->user->getState());
+                $zipCode = str_replace("'", "\\'", $this->user->getZipCode());
+                $country = str_replace("'", "\\'", $this->user->getCountry(true));
+            }
+        ?>
+
+        var razorpay_options = {
+            "key":         '<?php echo $this->keyId; ?>',
+            "currency":    'INR',
+            "image":       '<?php echo $logoImage; ?>',
+            "name":        '<?php echo $companyName; ?>',
+        <?php if ($this->from == 'invoice') { ?>
+            "description": '<?php echo $this->user->lang("Invoice")." #".$this->invoiceId; ?>',
+            "amount":      '<?php echo $this->amount; ?>', // paise
+            "order_id":    '<?php echo $this->razorpayOrderId; ?>',
+        <?php } elseif ($this->from == 'signup') { ?>
+            "description": '<?php echo $this->user->lang("New Order");?>',
+            "amount":      Math.round(document.getElementById("totalPay_raw").value * 100),  // paise
+        <?php } ?>
+
+            "prefill": {
+            <?php if ($this->from == 'signup') { ?>
+                "name":    document.getElementById("CT_1").value+' '+document.getElementById("CT_2").value+'<?php echo $firstName." ".$lastName; ?>',
+                "email":   document.getElementById("CT_4").value+'<?php echo $email; ?>',
+                "contact": document.getElementById("CT_8").value+'<?php echo $phone; ?>'
+            <?php } else { ?>
+                "name":    '<?php echo $firstName." ".$lastName; ?>',
+                "email":   '<?php echo $email; ?>',
+                "contact": '<?php echo $phone; ?>'
+            <?php } ?>
+            },
+
+            "notes": {
+                "invoice_id": '<?php echo $this->invoiceId; ?>',
+            <?php if ($this->from == 'signup') { ?>
+                "address":    document.getElementById("CT_3").value+'<?php echo $address; ?>',
+                "city":       document.getElementById("CT_5").value+'<?php echo $city; ?>',
+                "state":      document.getElementById("CT_6").value+'<?php echo $state; ?>',
+                "zip":        document.getElementById("CT_7").value+'<?php echo $zipCode; ?>',
+                "country":    document.getElementById("CT_15").value+'<?php echo $country; ?>'
+            <?php } else { ?>
+                "address":    '<?php echo $address; ?>',
+                "city":       '<?php echo $city; ?>',
+                "state":      '<?php echo $state; ?>',
+                "zip":        '<?php echo $zipCode; ?>',
+                "country":    '<?php echo $country; ?>'
+            <?php } ?>
+            },
+
+            "theme": {
+                "color": "#F37254"
+            }
+        };
+
+        /**
+         * The entire list of Checkout fields is available at
+         * https://docs.razorpay.com/docs/checkout-form#checkout-fields
+         */
+        razorpay_options.handler = function (response){
+            document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+            document.getElementById('razorpay_signature').value = response.razorpay_signature;
+
+            <?php if ($this->from == 'invoice' || $this->from == 'signup') { ?>
+                $('#submitButton').click();
+            <?php } ?>
+        };
+
+        // Boolean whether to show image inside a white frame. (default: true)
+        razorpay_options.theme.image_padding = false;
+
+        razorpay_options.modal = {
+            ondismiss: function() {
+                console.log("This code runs when the popup is closed");
+            },
+            // Boolean indicating whether pressing escape key
+            // should close the checkout form. (default: true)
+            escape: true,
+            // Boolean indicating whether clicking translucent blank
+            // space outside checkout form should close the form. (default: false)
+            backdropclose: false
+        };
+
+        razorpay_rzp = new Razorpay(razorpay_options);
+
+        // Open Handler
+        razorpayOpenHandler();
+
+        <?php if ($this->from == 'signup') { ?>
+            }
+        <?php } ?>
+
+        e.preventDefault();
+    });
+
+    function razorpayOpenHandler() {
+        razorpay_rzp.open();
+    }
+
+    // Close Checkout on page navigation
+    $(window).on('popstate', function() {
+        razorpay_rzp.close();
+    });
+</script>
