@@ -3,9 +3,9 @@
 
 <script data-cfasync="false" src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <?php if ($this->from == 'signup') { ?>
-    <a style="margin-left:0px;cursor:pointer;" class="btn-success btn btn-lg customButton razorpayButton <?php if(@$this->termsConditions) { ?>disabled<?php } ?> center-on-mobile" id="customButton"></a>
+    <a style="margin-left:0px;cursor:pointer;" class="app-btns primary customButton razorpayButton center-on-mobile" id="customButton"></a>
 <?php } elseif ($this->from == 'invoice') { ?>
-    <button style="margin-left:0px;cursor:pointer;" class="pull-right btn btn-lg btn-default customButton razorpayButton"><?php echo $this->user->lang('Pay Invoice'); ?></button>
+    <button class="app-btns primary customButton razorpayButton"><?php echo $this->user->lang('Pay Invoice'); ?></button>
 <?php } ?>
 
 <script data-cfasync="false" type="text/javascript">
