@@ -33,7 +33,7 @@
                         url: 'index.php?controller=signup&fuse=admin&action=testpasswordstrength',
                         async: false,
                         success : function(response) {
-                            json = ce.parseResponse(response);
+                            json = clientexec.parseResponse(response);
                             if (!json.valid) {
                                 password_validated = false;
                                 $('#password').parent().addClass('has-error');
@@ -81,6 +81,74 @@
             }
         ?>
 
+        <?php if ($this->from == 'signup') { ?>
+            var firstName = '';
+            var lastName = '';
+            var email = '';
+            var phone = '';
+            var address = '';
+            var city = '';
+            var state = '';
+            var zipCode = '';
+            var country = '';
+
+            <?php if (!$this->loggedIn) { ?>
+                var CT_1 = document.getElementById('CT_1');
+
+                if(typeof CT_1 !== null && CT_1 !== 'undefined' ) {
+                    firstName = CT_1.value;
+                }
+
+                var CT_2 = document.getElementById('CT_2');
+
+                if(typeof CT_2 !== null && CT_2 !== 'undefined' ) {
+                    lastName = CT_2.value;
+                }
+
+                var CT_4 = document.getElementById('CT_4');
+
+                if(typeof CT_4 !== null && CT_4 !== 'undefined' ) {
+                    email = CT_4.value;
+                }
+
+                var CT_8 = document.getElementById('CT_8');
+
+                if(typeof CT_8 !== null && CT_8 !== 'undefined' ) {
+                    phone = CT_8.value;
+                }
+
+                var CT_3 = document.getElementById('CT_3');
+
+                if(typeof CT_3 !== null && CT_3 !== 'undefined' ) {
+                    address = CT_3.value;
+                }
+
+                var CT_5 = document.getElementById('CT_5');
+
+                if(typeof CT_5 !== null && CT_5 !== 'undefined' ) {
+                    city = CT_5.value;
+                }
+
+                var CT_6 = document.getElementById('CT_6');
+
+                if(typeof CT_6 !== null && CT_6 !== 'undefined' ) {
+                    state = CT_6.value;
+                }
+
+                var CT_7 = document.getElementById('CT_7');
+
+                if(typeof CT_7 !== null && CT_7 !== 'undefined' ) {
+                    zipCode = CT_7.value;
+                }
+
+                var CT_15 = document.getElementById('CT_15');
+
+                if(typeof CT_15 !== null && CT_15 !== 'undefined' ) {
+                    country = CT_15.value;
+                }
+            <?php } ?>
+        <?php } ?>
+
         var razorpay_options = {
             "key":         '<?php echo $this->keyId; ?>',
             "currency":    'INR',
@@ -97,9 +165,9 @@
 
             "prefill": {
             <?php if ($this->from == 'signup') { ?>
-                "name":    document.getElementById("CT_1").value+' '+document.getElementById("CT_2").value+'<?php echo $firstName." ".$lastName; ?>',
-                "email":   document.getElementById("CT_4").value+'<?php echo $email; ?>',
-                "contact": document.getElementById("CT_8").value+'<?php echo $phone; ?>'
+                "name":    firstName+' '+lastName+'<?php echo $firstName." ".$lastName; ?>',
+                "email":   email+'<?php echo $email; ?>',
+                "contact": phone+'<?php echo $phone; ?>'
             <?php } else { ?>
                 "name":    '<?php echo $firstName." ".$lastName; ?>',
                 "email":   '<?php echo $email; ?>',
@@ -110,11 +178,11 @@
             "notes": {
                 "invoice_id": '<?php echo $this->invoiceId; ?>',
             <?php if ($this->from == 'signup') { ?>
-                "address":    document.getElementById("CT_3").value+'<?php echo $address; ?>',
-                "city":       document.getElementById("CT_5").value+'<?php echo $city; ?>',
-                "state":      document.getElementById("CT_6").value+'<?php echo $state; ?>',
-                "zip":        document.getElementById("CT_7").value+'<?php echo $zipCode; ?>',
-                "country":    document.getElementById("CT_15").value+'<?php echo $country; ?>'
+                "address":    address+'<?php echo $address; ?>',
+                "city":       city+'<?php echo $city; ?>',
+                "state":      state+'<?php echo $state; ?>',
+                "zip":        zipCode+'<?php echo $zipCode; ?>',
+                "country":    country+'<?php echo $country; ?>'
             <?php } else { ?>
                 "address":    '<?php echo $address; ?>',
                 "city":       '<?php echo $city; ?>',
